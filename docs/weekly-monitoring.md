@@ -38,7 +38,7 @@ Run checks by hand:
 | Page | `audit_page`, plus `page_speed` (mobile) if `PAGESPEED_API_KEY` is set |
 | Site | `crawl_site` with the saved page limit |
 
-Results go to the [score history](score-history.md).
+Results go to the [score history](score-history.md). Each run also re-indexes any [RAG](rag.md) site index that is more than 7 days old.
 
 ## Alerts
 

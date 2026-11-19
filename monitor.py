@@ -27,6 +27,7 @@ import threading
 import time
 
 import history
+import rag
 from tools import run_tool
 
 RUN_WEEKDAY, RUN_HOUR = 0, 9   # Monday (0) at 9:00
@@ -128,6 +129,7 @@ def run_due(run_all: bool = False, log=print) -> int:
                 run_check(w, log)
             except Exception as e:  # one broken site must not stop the others
                 log(f"[monitor] {w['url']} failed: {e}")
+        rag.refresh_stale(7, log)  # keep RAG indexes at most a week old
         return len(todo)
     finally:
         _lock.release()

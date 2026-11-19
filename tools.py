@@ -24,6 +24,7 @@ from dotenv import load_dotenv
 
 import gsc
 import history
+import rag
 
 load_dotenv(Path(__file__).parent / ".env")  # PAGESPEED_API_KEY etc., also when run via tools_cli.py
 
@@ -202,11 +203,14 @@ def _normalize(url: str) -> str:
     return url
 
 
-def crawl_site(url: str, max_pages: int = 30) -> dict:
+def crawl_site(url: str, max_pages: int = 30, _on_page=None) -> dict:
     """
     Breadth-first crawl: start at `url`, follow internal links, audit each page.
     Respects robots.txt. Returns per-page summaries plus site-wide findings
     (broken pages, duplicate titles/descriptions, missing tags, thin pages).
+
+    _on_page(url, title, soup): optional Python-only hook (not exposed to the model)
+    so rag.py can index each page from the SAME download instead of fetching twice.
     """
     max_pages = max(1, min(int(max_pages), HARD_PAGE_CAP))
     start = _normalize(url)
@@ -300,6 +304,8 @@ def crawl_site(url: str, max_pages: int = 30) -> dict:
             "lang_attribute": html_tag.get("lang") if html_tag else None,
         })
         pages[-1]["page_score"] = score_page(pages[-1])[0]
+        if _on_page:
+            _on_page(resp.url, title, soup)
 
     # ---- site-wide findings -------------------------------------------------
     def dupes(key):
@@ -919,6 +925,27 @@ TOOL_DEFINITIONS = [
         },
         "strict": True,
     },
+    {
+        "name": "search_knowledge",
+        "description": (
+            "Search a website's OWN content (RAG) and return the most relevant passages, "
+            "each with its source URL and section. Use it to get real facts about a "
+            "business (products, features, prices, policies, audience) before writing "
+            "about it, and to find real pages to link to. Ask focused questions, one "
+            "topic per call. The first call for a site indexes it (about 1-2 minutes)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "site": {"type": "string", "description": "The website, e.g. https://mysite.com"},
+                "query": {"type": "string", "description": "A focused question, e.g. 'what plans and prices are offered'"},
+                "k": {"type": "integer", "description": "How many passages to return (3-8)"},
+            },
+            "required": ["site", "query", "k"],
+            "additionalProperties": False,
+        },
+        "strict": True,
+    },
 ]
 
 # Map tool name -> Python function
@@ -933,6 +960,7 @@ _REGISTRY = {
     "page_speed": page_speed,
     "compare_pages": compare_pages,
     "search_console": gsc.search_console,
+    "search_knowledge": rag.search_knowledge,
 }
 
 

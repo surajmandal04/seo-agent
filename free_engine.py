@@ -30,6 +30,7 @@ TOOLS_HELP = """Your ONLY tools are these shell commands (run them with Bash, fr
   .venv/bin/python tools_cli.py page_speed <url> <mobile|desktop>
   .venv/bin/python tools_cli.py compare_pages "<keyword or empty>" <your_url> <competitor_url> [more]
   .venv/bin/python tools_cli.py search_console <site> <days>
+  .venv/bin/python tools_cli.py search_knowledge <site> "<focused question>" <k>
 Each prints JSON. Do not create or edit files. Write the report in plain,
 full English sentences. Output ONLY the final Markdown report."""
 
@@ -45,6 +46,7 @@ STEP_LABELS = {
     "page_speed": "Measuring page speed",
     "compare_pages": "Comparing pages",
     "search_console": "Reading your Google Search Console data",
+    "search_knowledge": "Searching the site's content",
 }
 
 
@@ -63,6 +65,8 @@ def _describe(command: str) -> str:
             return f"{label} for “{args[0]}”"
         if tool == "check_draft":
             return label
+        if tool == "search_knowledge" and len(args) > 1:
+            return f"{label}: “{args[1]}”"
         if tool == "compare_pages":
             return f"{label}: yours vs {max(0, len(args) - 2)} competitor(s)"
         if tool == "check_links":

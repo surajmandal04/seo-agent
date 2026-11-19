@@ -34,6 +34,7 @@ Claude (Anthropic) does the reasoning and writing. All **measurements and scores
 | Site crawl | Crawls up to 100 pages, finds broken pages, duplicates, thin pages, weak internal links | [docs/site-crawl.md](docs/site-crawl.md) |
 | Keyword research | Free autocomplete from Google, Bing and DuckDuckGo, grouped by intent, 5 markets | [docs/keywords.md](docs/keywords.md) |
 | Article writer | Writes an SEO article, checks it with 16 rules, fixes it until it passes | [docs/article-writer.md](docs/article-writer.md) |
+| RAG (site knowledge) | Indexes your site; the agent searches it (hybrid vector + keyword) so brand facts come with sources | [docs/rag.md](docs/rag.md) |
 | Competitor compare | Your page vs up to 3 competitors, side by side, plus content gaps | [docs/compare.md](docs/compare.md) |
 | Search Console | Your real Google clicks, impressions and positions, with opportunities | [docs/search-console.md](docs/search-console.md) |
 | Page speed | Core Web Vitals and Lighthouse score from Google PageSpeed Insights | [docs/page-speed.md](docs/page-speed.md) |
@@ -74,6 +75,7 @@ Put these in `.env` in the project root. `.env` is git-ignored, so never commit 
 | `ANTHROPIC_API_KEY` | Only for `--engine api` | Calls Claude through the Anthropic API | [console.anthropic.com](https://console.anthropic.com) → API Keys |
 | `PAGESPEED_API_KEY` | For page speed | Google PageSpeed Insights (Core Web Vitals). Without it, speed checks are skipped or fail with a quota error | Google Cloud console → enable **PageSpeed Insights API** → Credentials → API key |
 | `SEO_AGENT_DB` | No | Path of the SQLite history database. Default: `data/history.db` (handy for tests) | — |
+| `SEO_AGENT_RAG_DB` | No | Path of the RAG index database. Default: `data/rag.db` | — |
 
 Example `.env`:
 
@@ -147,6 +149,11 @@ Every report is saved to `reports/<name>.md`; articles also leave a draft in `dr
 # Score history
 .venv/bin/python history.py
 
+# RAG index over a site's own content
+.venv/bin/python rag.py index https://mysite.com --pages 30
+.venv/bin/python rag.py search mysite.com "what plans are offered"
+.venv/bin/python rag_eval.py
+
 # PDF export
 .venv/bin/python export_pdf.py reports/example.com.md
 
@@ -187,6 +194,8 @@ seo-agent/
 ├── tools.py           All tools + the scoring formulas
 ├── tools_cli.py       Runs one tool from the shell (used by the free engine)
 ├── gsc.py             Google Search Console sign-in and analysis
+├── rag.py             RAG: chunk, embed, store, hybrid search (search_knowledge tool)
+├── rag_eval.py        Retrieval eval: recall@5 and MRR for keyword / vector / hybrid
 ├── history.py         SQLite score history
 ├── monitor.py         Weekly re-audits + alerts
 ├── export_pdf.py      Markdown report -> PDF via headless Chrome
@@ -199,14 +208,14 @@ seo-agent/
 ├── docs/              One page per feature
 ├── reports/           Saved reports (git-ignored)
 ├── drafts/            Article drafts (git-ignored)
-└── data/              History DB + Google OAuth files (git-ignored)
+└── data/              History DB, RAG index, embedding model, Google OAuth files (git-ignored)
 ```
 
 ## Design choices
 
 - **Agent = model + tools + loop.** Claude decides which tools to call; Python does the fetching and measuring.
 - **Scores come from code** (`tools.score_page`, `crawl_site`). The prompt tells the model to use the tool's `health_score` exactly, so trends are comparable week to week.
-- **No invented numbers.** Autocomplete gives a popularity signal, not search volume; the article writer marks facts it can't verify as `[VERIFY: …]`.
+- **No invented numbers.** Autocomplete gives a popularity signal, not search volume. The article writer may state a brand fact only if RAG retrieved it from the site, with the source URL; anything else becomes `[VERIFY: …]`.
 - **Read-only and polite.** The agent only sends GET requests, respects `robots.txt`, and Search Console access uses the read-only scope.
 - **Safe by default.** The web server binds to `127.0.0.1`, crawled HTML is never rendered as HTML in the UI, and the free engine may only run `tools_cli.py` and edit files inside `drafts/`.
 

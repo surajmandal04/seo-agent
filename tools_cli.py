@@ -9,6 +9,7 @@ This lets Claude Code (the free route) use the SAME tools as agent.py:
     .venv/bin/python tools_cli.py keyword_suggestions "coffee grinder" us
     .venv/bin/python tools_cli.py page_topics https://example.com
     .venv/bin/python tools_cli.py check_draft drafts/my-article.md "target keyword"
+    .venv/bin/python tools_cli.py search_knowledge https://example.com "what plans are offered" 5
 """
 
 import sys
@@ -33,6 +34,10 @@ elif name == "compare_pages":
     tool_input = {"keyword": args[0], "your_url": args[1], "competitor_urls": args[2:5]}
 elif name == "search_console":
     tool_input = {"site": args[0], "days": int(args[1]) if len(args) > 1 else 28}
+elif name == "search_knowledge":
+    # search_knowledge <site> "<question>" [k]
+    tool_input = {"site": args[0], "query": args[1] if len(args) > 1 else "",
+                  "k": int(args[2]) if len(args) > 2 else 5}
 elif name == "page_speed":
     tool_input = {"url": args[0], "strategy": args[1] if len(args) > 1 else "mobile"}
 elif name == "check_draft":

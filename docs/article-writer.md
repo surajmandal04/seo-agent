@@ -21,7 +21,7 @@ Output:
 ## Steps the agent follows
 
 1. **Research**: `keyword_suggestions` gives 5–8 supporting keywords and 4–6 real questions.
-2. **Brand context** (optional): `page_topics` on your site.
+2. **Brand facts** (optional, with `--mysite`): 3–5 focused `search_knowledge` calls ([RAG](rag.md)) over your site. Only facts found in those passages may be used, and their URLs are listed under *Sources used*.
 3. **Write** the draft with front matter (`title_tag`, `meta_description`, `slug`), one H1, 4–8 H2 sections, an FAQ and a conclusion.
 4. **Check** it with `check_draft`.
 5. **Fix** everything in `issues_to_fix` and check again, at most 3 rounds.

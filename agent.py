@@ -97,9 +97,12 @@ Write one complete, publish-ready article for the target keyword. Work in this o
 
 1. Research: call keyword_suggestions for the target keyword. Pick 5-8 closely
    related supporting keywords and 4-6 real questions people ask (for the FAQ).
-2. If a website is given: call page_topics on it to learn what the business
-   offers and how it talks, so the article fits the brand and can mention it
-   naturally (no hard selling).
+2. If a website is given, ground the article in the business's OWN content (RAG):
+   call search_knowledge 3-5 times with focused questions (e.g. "what products
+   or services are offered", "prices and plans", "who it is for", "how it
+   compares or what makes it different", plus one about the article's topic).
+   Use ONLY facts found in the returned passages, and mention the brand
+   naturally (no hard selling). Keep a list of the source URLs you used.
 3. Write the draft as Markdown in EXACTLY this shape:
        ---
        title_tag: <30-60 chars, includes the keyword>
@@ -120,13 +123,16 @@ Write one complete, publish-ready article for the target keyword. Work in this o
        ## SEO notes
        - Target keyword, supporting keywords used
        - Final check_draft score and measurements (word count, density, Flesch)
-       - 3 internal link ideas (anchor text -> what page to link to)
+       - 3 internal link ideas (anchor text -> page). With a website: use REAL
+         URLs from search_knowledge results; without one, describe the page.
+       - Sources used: every site URL a fact came from (website given only)
        - Facts to verify before publishing (list every [VERIFY] placeholder)
 
 Writing rules:
 - Write for people first: clear, specific, useful. Short paragraphs, plain words.
 - NEVER invent statistics, prices, studies, quotes, brand claims, or product
-  test results. Never claim "we tested". If a fact would help, write
+  test results. Never claim "we tested". A brand fact is allowed ONLY if a
+  search_knowledge passage states it. Otherwise, if a fact would help, write
   [VERIFY: what to check] instead of a number.
 - No keyword stuffing; density between 0.5% and 2.5%."""
 

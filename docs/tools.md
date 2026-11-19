@@ -18,6 +18,7 @@ All tools live in `tools.py`. The agent calls them through `tools.run_tool(name,
 | `compare_pages` | Your page vs up to 3 competitors + content gap | `tools_cli.py compare_pages "keyword" https://me.com https://rival.com` |
 | `search_console` | Search Console totals, queries, opportunities | `tools_cli.py search_console https://mysite.com 28` |
 | `page_speed` | PageSpeed Insights / Core Web Vitals | `tools_cli.py page_speed https://example.com mobile` |
+| `search_knowledge` | RAG: hybrid search over a site's own content, with source URLs | `tools_cli.py search_knowledge https://example.com "pricing" 5` |
 
 Notes:
 - `check_draft` only reads `.md` files inside `drafts/`.
